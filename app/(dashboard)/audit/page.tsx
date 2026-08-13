@@ -3,21 +3,48 @@
 import { useState } from "react";
 import { ScrollText } from "lucide-react";
 import { useAuditLog } from "@/hooks/useAudit";
-import { useDebouncedValue } from "@/hooks/useDebouncedValue";
-import { SearchInput } from "@/components/ui/SearchInput";
+import { useAllTenants } from "@/hooks/useTenants";
+import { useAllApplications } from "@/hooks/useApplications";
+import { useAllUsers } from "@/hooks/useUsers";
+import { Combobox } from "@/components/ui/Combobox";
+import { Input } from "@/components/ui/Field";
+import { FilterField, FilterToolbar } from "@/components/ui/FilterToolbar";
 import { QueryState } from "@/components/ui/QueryState";
 import { Card } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
-import { formatDateTime } from "@/lib/utils";
+import { formatDateTime, fullName } from "@/lib/utils";
 import type { AuditLogEntry } from "@/lib/types";
 
 export default function AuditPage() {
   const [eventFilter, setEventFilter] = useState("");
+  const [tenantId, setTenantId] = useState("");
+  const [userId, setUserId] = useState("");
+  const [applicationId, setApplicationId] = useState("");
+  const [from, setFrom] = useState("");
+  const [to, setTo] = useState("");
+  const [filtersOpen, setFiltersOpen] = useState(false);
   const [cursor, setCursor] = useState<string | undefined>(undefined);
   const [entries, setEntries] = useState<AuditLogEntry[]>([]);
-  const debouncedEvent = useDebouncedValue(eventFilter);
 
-  const query = useAuditLog({ event: debouncedEvent || undefined, cursor });
+  const tenants = useAllTenants();
+  const tenantOptions = (tenants.data?.data ?? []).map((tenant) => ({ value: tenant.id, label: tenant.name }));
+  const applications = useAllApplications();
+  const applicationOptions = (applications.data?.data ?? []).map((app) => ({ value: app.id, label: app.name }));
+  const users = useAllUsers();
+  const userOptions = (users.data?.data ?? []).map((user) => ({
+    value: user.id,
+    label: `${fullName(user.firstName, user.lastName)} (${user.email})`,
+  }));
+
+  const query = useAuditLog({
+    event: eventFilter || undefined,
+    tenantId: tenantId || undefined,
+    userId: userId || undefined,
+    applicationId: applicationId || undefined,
+    from: from ? new Date(from).toISOString() : undefined,
+    to: to ? new Date(to).toISOString() : undefined,
+    cursor,
+  });
   const page = query.data?.data ?? [];
   const allEntries = cursor ? [...entries, ...page] : page;
   const lastId = page.at(-1)?.id;
@@ -28,17 +55,57 @@ export default function AuditPage() {
     setCursor(lastId);
   };
 
-  const resetFilter = (value: string) => {
+  const applyFilter = (setter: (value: string) => void) => (value: string) => {
     setEntries([]);
     setCursor(undefined);
-    setEventFilter(value);
+    setter(value);
+  };
+
+  const resetFilters = () => {
+    setEntries([]);
+    setCursor(undefined);
+    setEventFilter("");
+    setTenantId("");
+    setUserId("");
+    setApplicationId("");
+    setFrom("");
+    setTo("");
   };
 
   return (
     <div className="space-y-6">
       <p className="text-sm text-ink-500">Platform-wide audit trail of administrative actions.</p>
 
-      <SearchInput value={eventFilter} onChange={resetFilter} placeholder="Filter by event, e.g. tenant.created…" />
+      <FilterToolbar
+        search={eventFilter}
+        onSearchChange={applyFilter(setEventFilter)}
+        searchPlaceholder="Filter by event, e.g. tenant.created…"
+        open={filtersOpen}
+        onToggleOpen={() => setFiltersOpen((current) => !current)}
+        title="Audit Filters"
+        onReset={resetFilters}
+      >
+        <FilterField label="Tenant">
+          <Combobox value={tenantId} onValueChange={applyFilter(setTenantId)} options={tenantOptions} placeholder="Select tenant" />
+        </FilterField>
+        <FilterField label="User">
+          <Combobox value={userId} onValueChange={applyFilter(setUserId)} options={userOptions} placeholder="Select user" />
+        </FilterField>
+        <FilterField label="Application">
+          <Combobox
+            value={applicationId}
+            onValueChange={applyFilter(setApplicationId)}
+            options={applicationOptions}
+            placeholder="Select application"
+          />
+        </FilterField>
+        <FilterField label="From">
+          <Input type="datetime-local" value={from} onChange={(event) => applyFilter(setFrom)(event.target.value)} />
+        </FilterField>
+        <FilterField label="To">
+          <Input type="datetime-local" value={to} onChange={(event) => applyFilter(setTo)(event.target.value)} />
+        </FilterField>
+      </FilterToolbar>
 
       <QueryState
         isLoading={query.isLoading && !cursor}

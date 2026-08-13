@@ -34,7 +34,7 @@ export default function TenantsPage() {
   const [editingTenantId, setEditingTenantId] = useState<string | null>(null);
   const [invitingTenant, setInvitingTenant] = useState<Tenant | null>(null);
   const [pendingSuspend, setPendingSuspend] = useState<Tenant | null>(null);
-  const [temporaryPassword, setTemporaryPassword] = useState<string | null>(null);
+  const [provisionResult, setProvisionResult] = useState<{ temporaryPassword: string | null; emailSent: boolean; domains: string[] } | null>(null);
   const debouncedSearch = useDebouncedValue(search);
   const { notify } = useToast();
 
@@ -175,9 +175,9 @@ export default function TenantsPage() {
       <TenantCreateModal
         open={createOpen}
         onClose={() => setCreateOpen(false)}
-        onCreated={(password) => {
+        onCreated={(result) => {
           setCreateOpen(false);
-          setTemporaryPassword(password);
+          setProvisionResult(result);
         }}
       />
 
@@ -188,11 +188,27 @@ export default function TenantsPage() {
       <TenantInviteModal tenant={invitingTenant} onClose={() => setInvitingTenant(null)} />
 
       <SecretModal
-        open={Boolean(temporaryPassword)}
+        open={Boolean(provisionResult)}
         title="Tenant provisioned"
-        description="The first admin user's temporary password was emailed to them. You can also copy it below."
-        items={temporaryPassword ? [{ label: "Temporary password", value: temporaryPassword }] : []}
-        onDone={() => setTemporaryPassword(null)}
+        description={
+          provisionResult?.emailSent
+            ? "The first admin user's temporary password was emailed to them directly — it is not shown here."
+            : "We couldn't email the welcome message, so here's the temporary password to share with the admin yourself. It will not be shown again."
+        }
+        items={
+          provisionResult
+            ? [
+                ...provisionResult.domains.map((domain, index) => ({
+                  label: provisionResult.domains.length > 1 ? `Tenant URL ${index + 1}` : "Tenant URL",
+                  value: domain,
+                })),
+                ...(provisionResult.temporaryPassword
+                  ? [{ label: "Temporary password", value: provisionResult.temporaryPassword }]
+                  : []),
+              ]
+            : []
+        }
+        onDone={() => setProvisionResult(null)}
       />
 
       <Modal open={Boolean(pendingSuspend)} onClose={() => setPendingSuspend(null)} title="Suspend tenant">

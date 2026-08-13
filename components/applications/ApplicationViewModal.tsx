@@ -27,7 +27,16 @@ export function ApplicationViewModal({ applicationId, onClose }: { applicationId
       {app ? (
         <div className="space-y-6">
           <div className="flex flex-wrap items-center justify-between gap-2">
-            <p className="text-sm text-ink-500">{app.clientId}</p>
+            <div className="flex items-center gap-3">
+              {app.logoUrl ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img src={app.logoUrl} alt="" className="h-8 w-8 rounded-lg object-contain" />
+              ) : null}
+              <p className="flex items-center gap-1.5 text-xs text-ink-500">
+                Client ID:
+                <code className="rounded bg-surface-page px-1.5 py-0.5 font-mono text-ink-700">{app.clientId}</code>
+              </p>
+            </div>
             <div className="flex flex-wrap items-center gap-2">
               {badge ? <Badge label={badge.label} tone={badge.tone} /> : null}
               {app.status === "disabled" ? (
@@ -67,6 +76,8 @@ export function ApplicationViewModal({ applicationId, onClose }: { applicationId
 
           <dl className="grid grid-cols-1 gap-4 text-sm sm:grid-cols-2">
             <Detail label="Client type" value={app.clientType} />
+            <Detail label="Base domain" value={app.baseDomain || "—"} />
+            <Detail label="Logo URL" value={app.logoUrl || "—"} />
             <Detail label="Resource indicator" value={app.resourceIndicator || "—"} />
             <Detail label="Webhook URL" value={app.webhookUrl || "—"} />
           </dl>

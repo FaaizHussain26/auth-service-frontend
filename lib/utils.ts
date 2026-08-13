@@ -36,3 +36,12 @@ export function formatDateTime(value: string | null | undefined): string {
 export function fullName(first?: string | null, last?: string | null): string {
   return [first, last].filter(Boolean).join(" ") || "—";
 }
+
+/** Mirrors the backend's slugify() exactly — used to preview a derived client_id/slug live. */
+export function slugify(value: string): string {
+  return value
+    .toLowerCase()
+    .trim()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/(^-|-$)/g, "");
+}

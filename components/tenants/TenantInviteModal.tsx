@@ -13,10 +13,12 @@ export function TenantInviteModal({ tenant, onClose }: { tenant: Tenant | null; 
   const detail = useTenant(tenant?.id);
   const inviteMember = useInviteTenantMember(tenant?.id ?? "");
 
-  const applicationOptions = (detail.data?.data.applications ?? []).map((application) => ({
-    value: application.id,
-    label: application.name,
-  }));
+  const applicationOptions = (detail.data?.data.applications ?? [])
+    .filter((application) => !application.hiddenFromPicker)
+    .map((application) => ({
+      value: application.id,
+      label: application.name,
+    }));
 
   return (
     <Modal open={Boolean(tenant)} onClose={onClose} title={tenant ? `Invite to ${tenant.name}` : "Invite member"}>

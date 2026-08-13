@@ -36,13 +36,12 @@ export function ApplicationModal({
 
       <ApplicationForm
         key={application?.id ?? "new"}
-        clientIdEditable={!application}
+        existingClientId={application?.clientId}
         submitLabel={application ? "Save changes" : "Create application"}
         submitting={application ? updateApplication.isPending : createApplication.isPending}
         defaultValues={
           application
             ? {
-                clientId: application.clientId,
                 name: application.name,
                 clientType: application.clientType,
                 redirectUris: application.redirectUris.length ? application.redirectUris : [""],
@@ -51,6 +50,8 @@ export function ApplicationModal({
                 scopes: application.scopes,
                 resourceIndicator: application.resourceIndicator ?? "",
                 webhookUrl: application.webhookUrl ?? "",
+                baseDomain: application.baseDomain ?? "",
+                logoUrl: application.logoUrl ?? "",
               }
             : undefined
         }

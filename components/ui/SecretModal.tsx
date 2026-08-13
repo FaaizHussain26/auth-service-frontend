@@ -1,12 +1,38 @@
 "use client";
 
-import { Copy } from "lucide-react";
+import { useState } from "react";
+import { Check, Copy } from "lucide-react";
 import { Modal } from "./Modal";
 import { Button } from "./Button";
+import { useToast } from "./toast-context";
 
 interface SecretItem {
   label: string;
   value: string;
+}
+
+async function copyToClipboard(value: string): Promise<boolean> {
+  try {
+    await navigator.clipboard.writeText(value);
+    return true;
+  } catch {
+    // Clipboard API unavailable or blocked (older browser, permissions
+    // policy) — fall back to the legacy selection-based copy.
+    try {
+      const textarea = document.createElement("textarea");
+      textarea.value = value;
+      textarea.style.position = "fixed";
+      textarea.style.opacity = "0";
+      document.body.appendChild(textarea);
+      textarea.focus();
+      textarea.select();
+      const ok = document.execCommand("copy");
+      document.body.removeChild(textarea);
+      return ok;
+    } catch {
+      return false;
+    }
+  }
 }
 
 export function SecretModal({
@@ -22,6 +48,19 @@ export function SecretModal({
   items: SecretItem[];
   onDone: () => void;
 }) {
+  const { notify } = useToast();
+  const [copiedLabel, setCopiedLabel] = useState<string | null>(null);
+
+  const handleCopy = async (item: SecretItem) => {
+    const ok = await copyToClipboard(item.value);
+    if (!ok) {
+      notify("error", `Couldn't copy ${item.label.toLowerCase()} — copy it manually instead.`);
+      return;
+    }
+    setCopiedLabel(item.label);
+    setTimeout(() => setCopiedLabel((current) => (current === item.label ? null : current)), 1500);
+  };
+
   return (
     <Modal open={open} onClose={onDone} title={title}>
       <p className="mb-4 text-sm text-ink-700">{description}</p>
@@ -33,11 +72,11 @@ export function SecretModal({
               <code className="flex-1 truncate text-xs text-ink-900">{item.value}</code>
               <button
                 type="button"
-                onClick={() => navigator.clipboard.writeText(item.value)}
+                onClick={() => handleCopy(item)}
                 className="text-ink-500 hover:text-ink-900"
                 aria-label={`Copy ${item.label}`}
               >
-                <Copy className="h-4 w-4" />
+                {copiedLabel === item.label ? <Check className="h-4 w-4 text-success" /> : <Copy className="h-4 w-4" />}
               </button>
             </div>
           </div>

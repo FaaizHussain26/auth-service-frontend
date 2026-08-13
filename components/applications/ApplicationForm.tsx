@@ -1,6 +1,6 @@
 "use client";
 
-import { Controller, useForm } from "react-hook-form";
+import { Controller, useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { Field } from "@/components/ui/Field";
@@ -14,10 +14,10 @@ import {
   GRANT_TYPE_OPTIONS,
   SCOPE_OPTIONS,
 } from "@/lib/constants";
+import { slugify } from "@/lib/utils";
 import type { CreateApplicationInput } from "@/lib/types";
 
 const schema = z.object({
-  clientId: z.string().min(1, "Client ID is required"),
   name: z.string().min(1, "Name is required"),
   clientType: z.enum(["public", "confidential"]),
   redirectUris: z
@@ -30,19 +30,22 @@ const schema = z.object({
   scopes: z.array(z.string()).min(1, "Select at least one scope"),
   resourceIndicator: z.string().optional(),
   webhookUrl: z.string().optional(),
+  baseDomain: z.string().optional(),
+  logoUrl: z.string().optional(),
 });
 
 export type ApplicationFormValues = z.infer<typeof schema>;
 
 export function ApplicationForm({
   defaultValues,
-  clientIdEditable = true,
+  existingClientId,
   submitLabel,
   submitting,
   onSubmit,
 }: {
   defaultValues?: Partial<ApplicationFormValues>;
-  clientIdEditable?: boolean;
+  /** The app's already-assigned client_id, when editing — fixed and shown as-is. */
+  existingClientId?: string;
   submitLabel: string;
   submitting: boolean;
   onSubmit: (values: CreateApplicationInput) => void;
@@ -55,7 +58,6 @@ export function ApplicationForm({
   } = useForm<ApplicationFormValues>({
     resolver: zodResolver(schema),
     defaultValues: {
-      clientId: "",
       name: "",
       clientType: "public",
       redirectUris: [""],
@@ -64,29 +66,27 @@ export function ApplicationForm({
       scopes: ["openid", "email", "profile", "offline_access"],
       resourceIndicator: "",
       webhookUrl: "",
+      baseDomain: "",
+      logoUrl: "",
       ...defaultValues,
     },
   });
 
+  const nameValue = useWatch({ control, name: "name" });
+  const clientId = existingClientId || slugify(nameValue || "");
+
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-      <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
-        <Field
-          label="Client ID"
-          htmlFor="clientId"
-          error={errors.clientId?.message}
-        >
-          <Input
-            id="clientId"
-            placeholder="my-app"
-            disabled={!clientIdEditable}
-            {...register("clientId")}
-          />
-        </Field>
-        <Field label="Display name" htmlFor="name" error={errors.name?.message}>
-          <Input id="name" placeholder="My Application" {...register("name")} />
-        </Field>
-      </div>
+      <Field label="Display name" htmlFor="name" error={errors.name?.message}>
+        <Input id="name" placeholder="My Application" {...register("name")} />
+        <p className="mt-1.5 flex flex-wrap items-center gap-1.5 text-xs text-ink-500">
+          Client ID:
+          <code className="rounded bg-surface-page px-1.5 py-0.5 font-mono text-ink-700">
+            {clientId || "—"}
+          </code>
+          {existingClientId ? "(fixed — can't change after creation)" : "(auto-generated from the name)"}
+        </p>
+      </Field>
 
       <Field
         label="Client type"
@@ -98,6 +98,22 @@ export function ApplicationForm({
           options={CLIENT_TYPE_OPTIONS}
           {...register("clientType")}
         />
+      </Field>
+
+      <Field
+        label="Base domain"
+        htmlFor="baseDomain"
+        hint="When set, each tenant granted this app automatically gets a redirect URI derived from its subdomain, e.g. abc.calendax.com."
+      >
+        <Input id="baseDomain" placeholder="calendax.com" {...register("baseDomain")} />
+      </Field>
+
+      <Field
+        label="Logo URL"
+        htmlFor="logoUrl"
+        hint="Shown on the tenant dashboard's 'my applications' launcher. Leave blank to show a generated icon instead."
+      >
+        <Input id="logoUrl" placeholder="https://app.example.com/logo.png" {...register("logoUrl")} />
       </Field>
 
       <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">

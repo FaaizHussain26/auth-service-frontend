@@ -57,13 +57,16 @@ export interface Application {
   firstParty: boolean;
   requiresOrg: boolean;
   webhookUrl: string | null;
+  baseDomain: string | null;
+  logoUrl: string | null;
+  hiddenFromPicker: boolean;
+  autoGrant: boolean;
   status: ApplicationStatus;
   createdAt: string;
   updatedAt: string;
 }
 
 export interface CreateApplicationInput {
-  clientId: string;
   name: string;
   clientType: ClientType;
   redirectUris?: string[];
@@ -73,6 +76,8 @@ export interface CreateApplicationInput {
   resourceIndicator?: string;
   webhookUrl?: string;
   webhookSecret?: string;
+  baseDomain?: string;
+  logoUrl?: string;
 }
 
 export interface CreateApplicationResult {
@@ -119,8 +124,9 @@ export interface CreateTenantInput {
 
 export interface CreateTenantResult {
   tenant: Tenant;
-  temporaryPassword: string;
+  temporaryPassword: string | null;
   emailSent: boolean;
+  domains: string[];
 }
 
 export interface UpdateTenantInput {

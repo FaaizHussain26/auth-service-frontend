@@ -52,7 +52,9 @@ export function TenantCreateForm({ submitting, onSubmit }: { submitting: boolean
     },
   });
 
-  const appOptions = (applications.data?.data ?? []).map((app) => ({ value: app.id, label: app.name }));
+  const appOptions = (applications.data?.data ?? [])
+    .filter((app) => !app.hiddenFromPicker)
+    .map((app) => ({ value: app.id, label: app.name }));
 
   const submit = (values: FormValues) =>
     onSubmit({

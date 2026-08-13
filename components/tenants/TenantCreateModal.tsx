@@ -12,7 +12,7 @@ export function TenantCreateModal({
 }: {
   open: boolean;
   onClose: () => void;
-  onCreated: (temporaryPassword: string) => void;
+  onCreated: (result: { temporaryPassword: string | null; emailSent: boolean; domains: string[] }) => void;
 }) {
   const { notify } = useToast();
   const createTenant = useCreateTenant();
@@ -26,8 +26,13 @@ export function TenantCreateModal({
           onSubmit={(values) =>
             createTenant.mutate(values, {
               onSuccess: (created) => {
-                notify("success", `${created.data.tenant.name} was provisioned.`);
-                onCreated(created.data.temporaryPassword);
+                const domainSuffix = created.data.domains.length ? ` at ${created.data.domains.join(", ")}` : "";
+                notify("success", `${created.data.tenant.name} was provisioned${domainSuffix}.`);
+                onCreated({
+                  temporaryPassword: created.data.temporaryPassword,
+                  emailSent: created.data.emailSent,
+                  domains: created.data.domains,
+                });
               },
               onError: (error: Error) => notify("error", error.message),
             })

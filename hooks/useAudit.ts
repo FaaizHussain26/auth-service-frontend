@@ -6,6 +6,8 @@ import type { AuditLogEntry } from "@/lib/types";
 
 interface AuditQuery {
   tenantId?: string;
+  userId?: string;
+  applicationId?: string;
   event?: string;
   from?: string;
   to?: string;
