@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Building2, KeyRound, Monitor, ShieldBan } from "lucide-react";
+import { Building2, KeyRound, Monitor, Play, ShieldBan } from "lucide-react";
 import { Modal } from "@/components/ui/Modal";
 import { Spinner } from "@/components/ui/Spinner";
 import { ErrorState } from "@/components/ui/ErrorState";
@@ -9,7 +9,7 @@ import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 import { Avatar } from "@/components/ui/Avatar";
 import { Pagination } from "@/components/ui/Pagination";
-import { useDisableUser, useForcePasswordReset, useRevokeUserSession, useUser, useUserSessions } from "@/hooks/useUsers";
+import { useDisableUser, useEnableUser, useForcePasswordReset, useRevokeUserSession, useUser, useUserSessions } from "@/hooks/useUsers";
 import { useToast } from "@/components/ui/toast-context";
 import { USER_STATUS_BADGE } from "@/lib/constants";
 import { formatDateTime, fullName } from "@/lib/utils";
@@ -20,9 +20,11 @@ export function UserDetailModal({ userId, onClose }: { userId: string | null; on
   const [sessionsPage, setSessionsPage] = useState(1);
   const sessions = useUserSessions(userId ?? undefined, { limit: 10, page: sessionsPage, sortBy: "createdAt", sortOrder: "DESC" });
   const disable = useDisableUser();
+  const enable = useEnableUser();
   const forceReset = useForcePasswordReset();
   const revokeSession = useRevokeUserSession(userId ?? "");
   const [confirmDisable, setConfirmDisable] = useState(false);
+  const [confirmEnable, setConfirmEnable] = useState(false);
 
   const badge = user.data ? USER_STATUS_BADGE[user.data.data.status] ?? { label: user.data.data.status, tone: "neutral" as const } : null;
 
@@ -91,7 +93,12 @@ export function UserDetailModal({ userId, onClose }: { userId: string | null; on
                 <ShieldBan className="h-4 w-4" />
                 Disable user
               </Button>
-            ) : null}
+            ) : (
+              <Button onClick={() => setConfirmEnable(true)}>
+                <Play className="h-4 w-4" />
+                Enable user
+              </Button>
+            )}
             <Button
               variant="secondary"
               loading={forceReset.isPending}
@@ -169,6 +176,29 @@ export function UserDetailModal({ userId, onClose }: { userId: string | null; on
             }
           >
             Disable
+          </Button>
+        </div>
+      </Modal>
+
+      <Modal open={confirmEnable} onClose={() => setConfirmEnable(false)} title="Enable user">
+        <p className="text-sm text-ink-700">This user will be able to sign in again.</p>
+        <div className="mt-6 flex justify-end gap-2">
+          <Button variant="secondary" onClick={() => setConfirmEnable(false)}>
+            Cancel
+          </Button>
+          <Button
+            loading={enable.isPending}
+            onClick={() =>
+              enable.mutate(userId as string, {
+                onSuccess: () => {
+                  notify("success", "User enabled.");
+                  setConfirmEnable(false);
+                },
+                onError: (error: Error) => notify("error", error.message),
+              })
+            }
+          >
+            Enable
           </Button>
         </div>
       </Modal>

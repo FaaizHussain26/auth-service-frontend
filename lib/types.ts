@@ -210,17 +210,23 @@ export interface Membership {
   user: User;
 }
 
+export interface InviteApplicationRoleValue {
+  applicationId: string;
+  roleId: string;
+  roleName?: string;
+}
+
 export interface InviteMemberInput {
   email: string;
   role?: MembershipRole;
-  applicationIds?: string[];
+  applications?: InviteApplicationRoleValue[];
 }
 
 export interface Invitation {
   id: string;
   tenantId: string;
   email: string;
-  applicationIds: string[];
+  applicationRoles: InviteApplicationRoleValue[];
   role: MembershipRole;
   invitedByUserId: string;
   expiresAt: string;

@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { Plus, Users as UsersIcon } from "lucide-react";
-import { useUsers, useDisableUser } from "@/hooks/useUsers";
+import { useUsers, useDisableUser, useEnableUser } from "@/hooks/useUsers";
 import { useAllTenants } from "@/hooks/useTenants";
 import { useAllApplications } from "@/hooks/useApplications";
 import { useDebouncedValue } from "@/hooks/useDebouncedValue";
@@ -30,6 +30,7 @@ export default function UsersPage() {
   const [limit, setLimit] = useState(10);
   const [filtersOpen, setFiltersOpen] = useState(false);
   const [pendingDisable, setPendingDisable] = useState<User | null>(null);
+  const [pendingEnable, setPendingEnable] = useState<User | null>(null);
   const [createOpen, setCreateOpen] = useState(false);
   const [viewingUserId, setViewingUserId] = useState<string | null>(null);
   const [temporaryPassword, setTemporaryPassword] = useState<string | null>(null);
@@ -50,6 +51,7 @@ export default function UsersPage() {
     limit,
   });
   const disable = useDisableUser();
+  const enable = useEnableUser();
 
   const resetFilters = () => {
     setSearch("");
@@ -65,6 +67,17 @@ export default function UsersPage() {
       onSuccess: () => {
         notify("success", `${fullName(pendingDisable.firstName, pendingDisable.lastName)} has been disabled.`);
         setPendingDisable(null);
+      },
+      onError: (error: Error) => notify("error", error.message),
+    });
+  };
+
+  const confirmEnable = () => {
+    if (!pendingEnable) return;
+    enable.mutate(pendingEnable.id, {
+      onSuccess: () => {
+        notify("success", `${fullName(pendingEnable.firstName, pendingEnable.lastName)} has been enabled.`);
+        setPendingEnable(null);
       },
       onError: (error: Error) => notify("error", error.message),
     });
@@ -143,6 +156,7 @@ export default function UsersPage() {
           users={query.data?.data ?? []}
           onView={(selected) => setViewingUserId(selected.id)}
           onDisable={setPendingDisable}
+          onEnable={setPendingEnable}
         />
       </QueryState>
 
@@ -185,6 +199,20 @@ export default function UsersPage() {
           </Button>
           <Button variant="danger" loading={disable.isPending} onClick={confirmDisable}>
             Disable
+          </Button>
+        </div>
+      </Modal>
+
+      <Modal open={Boolean(pendingEnable)} onClose={() => setPendingEnable(null)} title="Enable user">
+        <p className="text-sm text-ink-700">
+          {pendingEnable ? fullName(pendingEnable.firstName, pendingEnable.lastName) : ""} will be able to sign in again.
+        </p>
+        <div className="mt-6 flex justify-end gap-2">
+          <Button variant="secondary" onClick={() => setPendingEnable(null)}>
+            Cancel
+          </Button>
+          <Button loading={enable.isPending} onClick={confirmEnable}>
+            Enable
           </Button>
         </div>
       </Modal>

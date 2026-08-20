@@ -27,6 +27,7 @@ export function TenantInviteModal({ tenant, onClose }: { tenant: Tenant | null; 
 
       {!detail.isLoading && !detail.isError ? (
         <InviteMemberForm
+          tenantId={tenant?.id ?? ""}
           applicationOptions={applicationOptions}
           submitting={inviteMember.isPending}
           onSubmit={(values) =>

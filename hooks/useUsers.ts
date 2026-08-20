@@ -63,6 +63,15 @@ export function useDisableUser() {
   });
 }
 
+export function useEnableUser() {
+  const api = useApiClient();
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (id: string) => api.post<User>(`/admin/v1/users/${id}/enable`),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["users"] }),
+  });
+}
+
 export function useForcePasswordReset() {
   const api = useApiClient();
   return useMutation({

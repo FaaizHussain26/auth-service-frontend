@@ -1,4 +1,4 @@
-import { Eye, ShieldBan } from "lucide-react";
+import { Eye, Play, ShieldBan } from "lucide-react";
 import { Avatar } from "@/components/ui/Avatar";
 import { Badge } from "@/components/ui/Badge";
 import { Card } from "@/components/ui/Card";
@@ -10,10 +10,12 @@ export function UserTable({
   users,
   onView,
   onDisable,
+  onEnable,
 }: {
   users: User[];
   onView: (user: User) => void;
   onDisable: (user: User) => void;
+  onEnable: (user: User) => void;
 }) {
   return (
     <Card className="overflow-x-auto">
@@ -80,7 +82,15 @@ export function UserTable({
                         <ShieldBan className="h-3.5 w-3.5" />
                         Disable
                       </button>
-                    ) : null}
+                    ) : (
+                      <button
+                        onClick={() => onEnable(user)}
+                        className="flex items-center gap-1.5 rounded-field px-2.5 py-1.5 text-xs font-semibold text-ink-700 hover:bg-white"
+                      >
+                        <Play className="h-3.5 w-3.5" />
+                        Enable
+                      </button>
+                    )}
                   </div>
                 </td>
               </tr>

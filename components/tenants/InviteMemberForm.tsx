@@ -5,7 +5,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { Field, Input } from "@/components/ui/Field";
 import { Combobox } from "@/components/ui/Combobox";
-import { MultiSelectChips } from "@/components/ui/MultiSelectChips";
+import { ApplicationRolePicker } from "./ApplicationRolePicker";
 import { Button } from "@/components/ui/Button";
 import { MEMBERSHIP_ROLE_OPTIONS } from "@/lib/constants";
 import type { InviteMemberInput } from "@/lib/types";
@@ -13,16 +13,24 @@ import type { InviteMemberInput } from "@/lib/types";
 const schema = z.object({
   email: z.string().email("Enter a valid email address"),
   role: z.enum(["admin", "member"]),
-  applicationIds: z.array(z.string()),
+  applications: z.array(
+    z.object({
+      applicationId: z.string(),
+      roleId: z.string().min(1, "Choose a role"),
+      roleName: z.string().optional(),
+    }),
+  ),
 });
 
 type FormValues = z.infer<typeof schema>;
 
 export function InviteMemberForm({
+  tenantId,
   applicationOptions,
   submitting,
   onSubmit,
 }: {
+  tenantId: string;
   applicationOptions: Array<{ value: string; label: string }>;
   submitting: boolean;
   onSubmit: (values: InviteMemberInput) => void;
@@ -34,7 +42,7 @@ export function InviteMemberForm({
     formState: { errors },
   } = useForm<FormValues>({
     resolver: zodResolver(schema),
-    defaultValues: { email: "", role: "member", applicationIds: [] },
+    defaultValues: { email: "", role: "member", applications: [] },
   });
 
   return (
@@ -52,12 +60,16 @@ export function InviteMemberForm({
         />
       </Field>
       {applicationOptions.length ? (
-        <Field label="Application access" hint="Only applications this tenant already has access to.">
+        <Field
+          label="Application access"
+          hint="Only applications this tenant already has access to. Pick a role for each app you grant."
+          error={errors.applications ? "Choose a role for every selected application" : undefined}
+        >
           <Controller
             control={control}
-            name="applicationIds"
+            name="applications"
             render={({ field }) => (
-              <MultiSelectChips options={applicationOptions} values={field.value} onChange={field.onChange} placeholder="Search applications…" />
+              <ApplicationRolePicker tenantId={tenantId} options={applicationOptions} values={field.value} onChange={field.onChange} placeholder="Search applications…" />
             )}
           />
         </Field>
