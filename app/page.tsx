@@ -3,20 +3,29 @@
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/lib/auth/auth-context";
-import { Spinner } from "@/components/ui/Spinner";
+import { LoadingScreen } from "@/components/ui/LoadingScreen";
+import type { Zone } from "@/lib/auth/token-store";
+
+const HOME_BY_ZONE: Record<Zone, string> = {
+  admin: "/admin/dashboard",
+  tenant: "/tenant/applications",
+};
 
 export default function RootPage() {
   const router = useRouter();
-  const { status } = useAuth();
+  const { status, zone, login } = useAuth();
 
   useEffect(() => {
-    if (status === "authenticated") router.replace("/dashboard");
-    if (status === "unauthenticated") router.replace("/login");
-  }, [status, router]);
+    const dispatch: Record<typeof status, () => void> = {
+      checking: () => undefined,
+      unauthenticated: () => login(),
+      authenticated: () => {
+        if (!zone) return;
+        router.replace(HOME_BY_ZONE[zone]);
+      },
+    };
+    dispatch[status]();
+  }, [status, zone, login, router]);
 
-  return (
-    <div className="flex h-screen items-center justify-center bg-surface-page">
-      <Spinner />
-    </div>
-  );
+  return <LoadingScreen />;
 }

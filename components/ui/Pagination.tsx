@@ -1,7 +1,7 @@
 import { ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight } from "lucide-react";
 import { Button } from "./Button";
 import { PageSizeSelect } from "./PageSizeSelect";
-import type { PaginationMeta } from "@/lib/types";
+import type { PaginationMeta } from "@/lib/admin/types";
 
 export function Pagination({
   meta,

@@ -5,7 +5,7 @@ import type { ButtonHTMLAttributes } from "react";
 export type ButtonVariant = "primary" | "secondary" | "ghost" | "danger" | "outline";
 
 const VARIANT_CLASSES: Record<ButtonVariant, string> = {
-  primary: "bg-brand-600 text-white border border-brand-700 hover:bg-brand-700",
+  primary: "bg-brand-600 text-white hover:bg-brand-700",
   secondary: "bg-white text-ink-900 border border-surface-border hover:bg-surface-page",
   ghost: "bg-transparent text-ink-700 border border-transparent hover:bg-surface-page",
   danger: "bg-white text-danger border border-danger/40 hover:bg-danger-bg",

@@ -1,0 +1,248 @@
+export * from "@/lib/types";
+
+export type ClientType = "public" | "confidential";
+
+export type ApplicationStatus = "active" | "disabled";
+
+export type TenantKind = "organization" | "individual";
+
+export type TenantStatus = "provisioning" | "active" | "suspended" | "failed";
+
+export type MembershipRole = "admin" | "member";
+
+export type MembershipStatus = "invited" | "active" | "suspended";
+
+export type UserStatus = "active" | "suspended" | "pending";
+
+export type KeyStatus = "next" | "current" | "retired";
+
+export interface Application {
+  id: string;
+  clientId: string;
+  name: string;
+  clientType: ClientType;
+  redirectUris: string[];
+  postLogoutRedirectUris: string[];
+  grantTypes: string[];
+  scopes: string[];
+  resourceIndicator: string | null;
+  backchannelLogoutUri: string | null;
+  firstParty: boolean;
+  requiresOrg: boolean;
+  webhookUrl: string | null;
+  baseDomain: string | null;
+  logoUrl: string | null;
+  hiddenFromPicker: boolean;
+  autoGrant: boolean;
+  status: ApplicationStatus;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface CreateApplicationInput {
+  name: string;
+  clientType: ClientType;
+  redirectUris?: string[];
+  postLogoutRedirectUris?: string[];
+  grantTypes?: string[];
+  scopes?: string[];
+  resourceIndicator?: string;
+  webhookUrl?: string;
+  webhookSecret?: string;
+  baseDomain?: string;
+  logoUrl?: string;
+}
+
+export interface CreateApplicationResult {
+  application: Application;
+  clientSecret: string | null;
+  webhookSecret: string | null;
+}
+
+export interface Tenant {
+  id: string;
+  name: string;
+  slug: string;
+  kind: TenantKind;
+  status: TenantStatus;
+  contactEmail: string | null;
+  phoneNumber: string | null;
+  website: string | null;
+  address: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface TenantDetail extends Tenant {
+  applications: Application[];
+  totalApplications: number;
+  totalUsers: number;
+}
+
+export interface CreateTenantInput {
+  name: string;
+  kind: TenantKind;
+  applicationIds: string[];
+  firstUser: {
+    email: string;
+    firstName?: string;
+    lastName?: string;
+    phoneNumber?: string;
+  };
+  contactEmail?: string;
+  phoneNumber?: string;
+  website?: string;
+  address?: string;
+}
+
+export interface CreateTenantResult {
+  tenant: Tenant;
+  temporaryPassword: string | null;
+  emailSent: boolean;
+  domains: string[];
+}
+
+export interface UpdateTenantInput {
+  name?: string;
+  kind?: TenantKind;
+  contactEmail?: string;
+  phoneNumber?: string;
+  website?: string;
+  address?: string;
+  applicationIds?: string[];
+}
+
+export interface UserTenantSummary {
+  id: string;
+  name: string;
+  slug: string;
+  kind: TenantKind;
+  status: TenantStatus;
+}
+
+export interface UserApplicationSummary {
+  id: string;
+  name: string;
+  clientId: string;
+}
+
+export interface UserMembership {
+  id: string;
+  role: MembershipRole;
+  status: MembershipStatus;
+  tenant: UserTenantSummary;
+  applications: UserApplicationSummary[];
+}
+
+export interface User {
+  id: string;
+  email: string;
+  firstName: string | null;
+  middleName: string | null;
+  lastName: string | null;
+  phoneNumber: string | null;
+  status: UserStatus;
+  isActive: boolean;
+  isAccepted: boolean;
+  isSuperadmin: boolean;
+  emailVerifiedAt: string | null;
+  lastLoginAt: string | null;
+  passwordUpdatedAt: string | null;
+  createdAt: string;
+  updatedAt: string;
+  deletedAt: string | null;
+  tenants?: UserTenantSummary[];
+}
+
+export interface UserDetail extends User {
+  memberships: UserMembership[];
+}
+
+export interface CreateUserInput {
+  email: string;
+  firstName?: string;
+  lastName?: string;
+  phoneNumber?: string;
+  isSuperadmin?: boolean;
+}
+
+export interface CreateUserResult {
+  user: User;
+  temporaryPassword: string;
+}
+
+export interface Membership {
+  id: string;
+  userId: string;
+  tenantId: string;
+  status: MembershipStatus;
+  role: MembershipRole;
+  acceptedAt: string | null;
+  createdAt: string;
+  updatedAt: string;
+  user: User;
+}
+
+export interface InviteApplicationRoleValue {
+  applicationId: string;
+  roleId: string;
+  roleName?: string;
+}
+
+export interface InviteMemberInput {
+  email: string;
+  role?: MembershipRole;
+  applications?: InviteApplicationRoleValue[];
+}
+
+export interface Invitation {
+  id: string;
+  tenantId: string;
+  email: string;
+  applicationRoles: InviteApplicationRoleValue[];
+  role: MembershipRole;
+  invitedByUserId: string;
+  expiresAt: string;
+  acceptedAt: string | null;
+  createdAt: string;
+}
+
+export interface SigningKey {
+  kid: string;
+  alg: string;
+  publicJwk: Record<string, unknown>;
+  status: KeyStatus;
+  notBefore: string | null;
+  retiredAt: string | null;
+  createdAt: string;
+}
+
+export interface SessionRecord {
+  id: string;
+  uid: string;
+  userId: string;
+  authTime: number | null;
+  expiresAt: string;
+  createdAt: string;
+  updatedAt: string;
+  revokedAt: string | null;
+  revokedReason: string | null;
+}
+
+export interface AuditLogEntry {
+  id?: string;
+  actorType: string;
+  actorId: string | null;
+  tenantId: string | null;
+  event: string;
+  targetType: string | null;
+  targetId: string | null;
+  data: Record<string, unknown> | null;
+  occurredAt: string;
+}
+
+export interface CurrentUser {
+  id: string;
+  email: string;
+  isSuperadmin: true;
+}

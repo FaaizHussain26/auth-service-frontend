@@ -16,8 +16,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "DaxCore Admin",
-  description: "Admin console for the DaxCore identity platform",
+  title: "Syncora Admin",
+  description: "Admin console for the Syncora identity platform",
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {

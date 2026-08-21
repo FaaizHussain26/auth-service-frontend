@@ -1,4 +1,4 @@
-import { colorForString, initialsFor } from "@/lib/constants";
+import { colorForString, initialsFor } from "@/lib/admin/constants";
 
 export function Avatar({ seed, size = 44 }: { seed: string; size?: number }) {
   return (

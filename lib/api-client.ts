@@ -1,6 +1,7 @@
 import { env } from "./env";
 import type { ApiEnvelope } from "./types";
 
+
 export class ApiError extends Error {
   status: number;
   constructor(message: string, status: number) {
