@@ -19,8 +19,7 @@ interface ClientProfile {
 }
 
 const CLIENT_PROFILES: Record<LoginIntent, ClientProfile> = {
-  landing: { clientId: env.landingClientId, resource: env.landingResource, scope: "openid profile email" },
-  admin: { clientId: env.adminClientId, resource: env.adminResource, scope: env.scope },
+  admin: { clientId: env.adminClientId, resource: env.adminResource, scope: `${env.scope} zone_info` },
   tenant: { clientId: env.tenantClientId, resource: env.tenantResource, scope: env.scope },
 };
 

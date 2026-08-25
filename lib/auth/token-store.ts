@@ -8,7 +8,7 @@ export interface TokenSet {
 }
 
 export type Zone = "admin" | "tenant";
-export type LoginIntent = Zone | "landing";
+export type LoginIntent = Zone;
 
 const TOKENS_KEY = "syncora_tokens";
 const ZONE_KEY = "syncora_zone";

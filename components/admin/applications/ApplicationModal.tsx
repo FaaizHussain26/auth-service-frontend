@@ -39,6 +39,7 @@ export function ApplicationModal({
         existingClientId={application?.clientId}
         submitLabel={application ? "Save changes" : "Create application"}
         submitting={application ? updateApplication.isPending : createApplication.isPending}
+        locked={application?.isSystem}
         defaultValues={
           application
             ? {

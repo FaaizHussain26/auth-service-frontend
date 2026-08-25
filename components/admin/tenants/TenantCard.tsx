@@ -23,17 +23,24 @@ export function TenantCard({
 
   return (
     <div className="flex flex-col gap-4 rounded-2xl border border-surface-border bg-white p-5">
-      <div className="flex flex-wrap items-start justify-between gap-2">
-        <div className="flex min-w-0 items-center gap-3">
-          <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-brand-100 text-brand-600">
-            <Building2 className="h-5 w-5" />
-          </div>
-          <div className="min-w-0">
-            <p className="truncate text-sm font-semibold text-ink-900">{tenant.name}</p>
-            <p className="truncate text-xs text-ink-500">/{tenant.slug}</p>
-          </div>
+      <div className="flex items-center gap-3">
+        <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-brand-100 text-brand-600">
+          <Building2 className="h-5 w-5" />
         </div>
-        <div className="flex items-center gap-2">
+        <div className="min-w-0 flex-1">
+          <p className="truncate text-sm font-semibold text-ink-900">{tenant.name}</p>
+          <p className="truncate text-xs text-ink-500">/{tenant.slug}</p>
+        </div>
+      </div>
+
+      <div className="flex flex-wrap gap-1.5">
+        <Badge label={badge.label} tone={badge.tone} />
+        <Badge label={tenant.kind} tone="neutral" />
+      </div>
+
+      <div className="mt-auto flex flex-wrap items-center justify-between gap-2 border-t border-surface-border pt-3">
+        <span className="text-xs text-ink-500">Created {formatDate(tenant.createdAt)}</span>
+        <div className="flex flex-wrap items-center gap-2">
           {tenant.kind === "organization" ? (
             <button
               onClick={() => onInvite(tenant)}
@@ -43,17 +50,6 @@ export function TenantCard({
               Invite
             </button>
           ) : null}
-          <Badge label={badge.label} tone={badge.tone} />
-        </div>
-      </div>
-
-      <div className="flex flex-wrap gap-1.5">
-        <Badge label={tenant.kind} tone="neutral" />
-      </div>
-
-      <div className="flex flex-wrap items-center justify-between gap-2 border-t border-surface-border pt-3">
-        <span className="text-xs text-ink-500">Created {formatDate(tenant.createdAt)}</span>
-        <div className="flex items-center gap-2">
           <button onClick={() => onView(tenant)} className="flex items-center gap-1.5 rounded-field px-2.5 py-1.5 text-xs font-semibold text-ink-700 hover:bg-surface-page">
             <Eye className="h-3.5 w-3.5" />
             View

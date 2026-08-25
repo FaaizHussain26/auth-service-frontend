@@ -13,8 +13,7 @@ const HOME_BY_ZONE: Record<Zone, string> = {
 };
 
 const STATUS_BY_INTENT: Record<LoginIntent, string> = {
-  landing: "Completing sign-in…",
-  admin: "Loading your dashboard…",
+  admin: "Completing sign-in…",
   tenant: "Loading your dashboard…",
 };
 
@@ -27,7 +26,7 @@ function CallbackContent() {
   const params = useSearchParams();
   const { completeIdentity, completeZone } = useAuth();
   const [error, setError] = useState<string | null>(null);
-  const [status, setStatus] = useState(STATUS_BY_INTENT.landing);
+  const [status, setStatus] = useState(STATUS_BY_INTENT.admin);
   const exchangeStarted = useRef(false);
 
   useEffect(() => {
@@ -52,8 +51,7 @@ function CallbackContent() {
     setStatus(STATUS_BY_INTENT[intent]);
 
     const CALLBACK_HANDLERS: Record<LoginIntent, () => Promise<Zone | undefined>> = {
-      landing: () => completeIdentity(code, state).then(() => undefined),
-      admin: () => completeZone(code, state),
+      admin: () => completeIdentity(code, state),
       tenant: () => completeZone(code, state),
     };
 

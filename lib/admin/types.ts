@@ -34,6 +34,7 @@ export interface Application {
   logoUrl: string | null;
   hiddenFromPicker: boolean;
   autoGrant: boolean;
+  isSystem: boolean;
   status: ApplicationStatus;
   createdAt: string;
   updatedAt: string;

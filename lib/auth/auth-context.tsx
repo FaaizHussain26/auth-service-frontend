@@ -1,7 +1,6 @@
 "use client";
 
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
-import { env } from "../env";
 import { beginLogin, buildEndSessionUrl, completeLogin, refreshAccessToken } from "./oidc-client";
 import {
   clearTokens,
@@ -17,22 +16,27 @@ import {
 
 type AuthStatus = "checking" | "authenticated" | "unauthenticated";
 
-interface MeResponse {
-  isSuperadmin: boolean;
-  membership: { tenantSlug: string; tenantName: string; role: string } | null;
+interface ZoneClaims {
+  is_superadmin?: boolean;
+  tenant_slug?: string;
+  tenant_name?: string;
+  tenant_role?: string;
 }
 
-interface Envelope<T> {
-  data: T;
-}
-
-const ZONE_RESOLVERS: Array<{ match: (me: MeResponse) => boolean; zone: Zone }> = [
-  { match: (me) => me.isSuperadmin, zone: "admin" },
-  { match: (me) => Boolean(me.membership), zone: "tenant" },
+const ZONE_RESOLVERS: Array<{ match: (claims: ZoneClaims) => boolean; zone: Zone }> = [
+  { match: (claims) => Boolean(claims.is_superadmin), zone: "admin" },
+  { match: (claims) => Boolean(claims.tenant_slug), zone: "tenant" },
 ];
 
-function resolveZone(me: MeResponse): Zone | null {
-  return ZONE_RESOLVERS.find((resolver) => resolver.match(me))?.zone ?? null;
+function resolveZone(claims: ZoneClaims): Zone | null {
+  return ZONE_RESOLVERS.find((resolver) => resolver.match(claims))?.zone ?? null;
+}
+
+function decodeIdTokenClaims(idToken: string | undefined): ZoneClaims {
+  const payload = idToken?.split(".")[1];
+  if (!payload) return {};
+  const normalized = payload.replace(/-/g, "+").replace(/_/g, "/");
+  return JSON.parse(atob(normalized));
 }
 
 interface AuthContextValue {
@@ -40,7 +44,7 @@ interface AuthContextValue {
   zone: Zone | null;
   login: () => void;
   logout: () => void;
-  completeIdentity: (code: string, state: string) => Promise<void>;
+  completeIdentity: (code: string, state: string) => Promise<Zone | undefined>;
   completeZone: (code: string, state: string) => Promise<Zone>;
   getAccessToken: () => Promise<string | null>;
 }
@@ -62,7 +66,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const login = useCallback(() => {
-    void beginLogin("landing");
+    void beginLogin("admin");
   }, []);
 
   const logout = useCallback(() => {
@@ -75,20 +79,24 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     window.location.assign(buildEndSessionUrl(idToken));
   }, [tokens]);
 
-  const completeIdentity = useCallback(async (code: string, state: string): Promise<void> => {
-    const { tokens: identityTokens } = await completeLogin(code, state);
+  const completeIdentity = useCallback(async (code: string, state: string): Promise<Zone | undefined> => {
+    const { tokens: adminTokens } = await completeLogin(code, state);
+    const claims = decodeIdTokenClaims(adminTokens.id_token);
+    const resolvedZone = resolveZone(claims);
 
-    const response = await fetch(`${env.apiOrigin}/landing/v1/me`, {
-      headers: { Authorization: `Bearer ${identityTokens.access_token}` },
-    });
-    if (!response.ok) throw new Error("Could not verify your account. Please try again.");
-    const { data: me }: Envelope<MeResponse> = await response.json();
-
-    const resolvedZone = resolveZone(me);
-    if (!resolvedZone) {
-      throw new Error("Your account doesn't have access to any Syncora application. Contact your administrator.");
+    if (resolvedZone === "admin") {
+      saveTokens(adminTokens);
+      saveZone("admin");
+      setTokens(adminTokens);
+      setZone("admin");
+      setStatus("authenticated");
+      return "admin";
     }
-    await beginLogin(resolvedZone);
+    if (resolvedZone === "tenant") {
+      await beginLogin("tenant");
+      return undefined;
+    }
+    throw new Error("Your account doesn't have access to any Syncora application. Contact your administrator.");
   }, []);
 
   const completeZone = useCallback(async (code: string, state: string): Promise<Zone> => {

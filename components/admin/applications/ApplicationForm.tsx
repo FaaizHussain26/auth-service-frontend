@@ -41,6 +41,7 @@ export function ApplicationForm({
   existingClientId,
   submitLabel,
   submitting,
+  locked,
   onSubmit,
 }: {
   defaultValues?: Partial<ApplicationFormValues>;
@@ -48,6 +49,8 @@ export function ApplicationForm({
   existingClientId?: string;
   submitLabel: string;
   submitting: boolean;
+  /** Platform-critical application — only name/logo are editable here. */
+  locked?: boolean;
   onSubmit: (values: CreateApplicationInput) => void;
 }) {
   const {
@@ -89,26 +92,6 @@ export function ApplicationForm({
       </Field>
 
       <Field
-        label="Client type"
-        htmlFor="clientType"
-        error={errors.clientType?.message}
-      >
-        <Select
-          id="clientType"
-          options={CLIENT_TYPE_OPTIONS}
-          {...register("clientType")}
-        />
-      </Field>
-
-      <Field
-        label="Base domain"
-        htmlFor="baseDomain"
-        hint="When set, each tenant granted this app automatically gets a redirect URI derived from its subdomain, e.g. abc.calendax.com."
-      >
-        <Input id="baseDomain" placeholder="calendax.com" {...register("baseDomain")} />
-      </Field>
-
-      <Field
         label="Logo URL"
         htmlFor="logoUrl"
         hint="Shown on the tenant dashboard's 'my applications' launcher. Leave blank to show a generated icon instead."
@@ -116,100 +99,129 @@ export function ApplicationForm({
         <Input id="logoUrl" placeholder="https://app.example.com/logo.png" {...register("logoUrl")} />
       </Field>
 
-      <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
-        <Field
-          label="Redirect URIs"
-          error={errors.redirectUris?.message as string | undefined}
-        >
-          <Controller
-            control={control}
-            name="redirectUris"
-            render={({ field }) => (
-              <StringListInput
-                values={field.value}
-                onChange={field.onChange}
-                placeholder="https://app.example.com/callback"
-              />
-            )}
-          />
-        </Field>
-        <Field
-          label="Post-logout redirect URIs"
-          error={errors.postLogoutRedirectUris?.message as string | undefined}
-        >
-          <Controller
-            control={control}
-            name="postLogoutRedirectUris"
-            render={({ field }) => (
-              <StringListInput
-                values={field.value}
-                onChange={field.onChange}
-                placeholder="https://app.example.com/"
-              />
-            )}
-          />
-        </Field>
-      </div>
+      {locked ? (
+        <p className="rounded-field bg-surface-page px-3 py-2 text-xs text-ink-500">
+          This is a platform-critical application — only its name and logo can be changed here. The
+          fields below are read-only.
+        </p>
+      ) : null}
 
-      <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
+      <fieldset disabled={locked} className="space-y-6 disabled:opacity-60">
         <Field
-          label="Resource indicator"
-          htmlFor="resourceIndicator"
-          hint="Audience the access token is minted for."
+          label="Client type"
+          htmlFor="clientType"
+          error={errors.clientType?.message}
         >
-          <Input
-            id="resourceIndicator"
-            placeholder="https://api.example.com"
-            {...register("resourceIndicator")}
+          <Select
+            id="clientType"
+            options={CLIENT_TYPE_OPTIONS}
+            {...register("clientType")}
           />
         </Field>
-        <Field
-          label="Webhook URL"
-          htmlFor="webhookUrl"
-          hint="Receives tenant.created and related lifecycle events."
-        >
-          <Input
-            id="webhookUrl"
-            placeholder="https://app.example.com/webhooks/daxcore"
-            {...register("webhookUrl")}
-          />
-        </Field>
-      </div>
 
-      <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
-        <Field label="Grant types" error={errors.grantTypes?.message}>
-          <Controller
-            control={control}
-            name="grantTypes"
-            render={({ field }) => (
-              <MultiSelectChips
-                options={GRANT_TYPE_OPTIONS}
-                values={field.value}
-                onChange={field.onChange}
-                placeholder="Search grant types…"
-              />
-            )}
-          />
-        </Field>
         <Field
-          label="Scopes"
-          error={errors.scopes?.message}
-          hint="Fixed set of scopes supported by this identity provider."
+          label="Base domain"
+          htmlFor="baseDomain"
+          hint="When set, each tenant granted this app automatically gets a redirect URI derived from its subdomain, e.g. abc.calendax.com."
         >
-          <Controller
-            control={control}
-            name="scopes"
-            render={({ field }) => (
-              <MultiSelectChips
-                options={SCOPE_OPTIONS}
-                values={field.value}
-                onChange={field.onChange}
-                placeholder="Search scopes…"
-              />
-            )}
-          />
+          <Input id="baseDomain" placeholder="calendax.com" {...register("baseDomain")} />
         </Field>
-      </div>
+
+        <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
+          <Field
+            label="Redirect URIs"
+            error={errors.redirectUris?.message as string | undefined}
+          >
+            <Controller
+              control={control}
+              name="redirectUris"
+              render={({ field }) => (
+                <StringListInput
+                  values={field.value}
+                  onChange={field.onChange}
+                  placeholder="https://app.example.com/callback"
+                />
+              )}
+            />
+          </Field>
+          <Field
+            label="Post-logout redirect URIs"
+            error={errors.postLogoutRedirectUris?.message as string | undefined}
+          >
+            <Controller
+              control={control}
+              name="postLogoutRedirectUris"
+              render={({ field }) => (
+                <StringListInput
+                  values={field.value}
+                  onChange={field.onChange}
+                  placeholder="https://app.example.com/"
+                />
+              )}
+            />
+          </Field>
+        </div>
+
+        <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
+          <Field
+            label="Resource indicator"
+            htmlFor="resourceIndicator"
+            hint="Audience the access token is minted for."
+          >
+            <Input
+              id="resourceIndicator"
+              placeholder="https://api.example.com"
+              {...register("resourceIndicator")}
+            />
+          </Field>
+          <Field
+            label="Webhook URL"
+            htmlFor="webhookUrl"
+            hint="Receives tenant.created and related lifecycle events."
+          >
+            <Input
+              id="webhookUrl"
+              placeholder="https://app.example.com/webhooks/daxcore"
+              {...register("webhookUrl")}
+            />
+          </Field>
+        </div>
+
+        <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
+          <Field label="Grant types" error={errors.grantTypes?.message}>
+            <Controller
+              control={control}
+              name="grantTypes"
+              render={({ field }) => (
+                <MultiSelectChips
+                  options={GRANT_TYPE_OPTIONS}
+                  values={field.value}
+                  onChange={field.onChange}
+                  placeholder="Search grant types…"
+                />
+              )}
+            />
+          </Field>
+          <Field
+            label="Scopes"
+            error={errors.scopes?.message}
+            hint="Fixed set of scopes supported by this identity provider."
+          >
+            <Controller
+              control={control}
+              name="scopes"
+              render={({ field }) => (
+                <MultiSelectChips
+                  options={SCOPE_OPTIONS}
+                  values={field.value}
+                  onChange={field.onChange}
+                  placeholder="Search scopes…"
+                />
+              )}
+            />
+          </Field>
+        </div>
+      </fieldset>
 
       <div className="flex justify-end border-t border-surface-border pt-5">
         <Button type="submit" loading={submitting}>
