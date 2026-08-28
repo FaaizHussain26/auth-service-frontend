@@ -112,6 +112,51 @@ export interface Invitation {
   expiresAt: string;
 }
 
+export type TicketStatus = "open" | "in_progress" | "resolved" | "closed";
+export type TicketCommentAuthorType = "tenant_user" | "admin";
+
+export interface TicketAuthorSummary {
+  id: string;
+  email: string;
+  firstName: string | null;
+  lastName: string | null;
+}
+
+export interface TicketApplicationSummary {
+  id: string;
+  name: string;
+}
+
+export interface Ticket {
+  id: string;
+  tenantId: string;
+  createdByUserId: string;
+  createdByUser: TicketAuthorSummary | null;
+  applicationId: string;
+  application: TicketApplicationSummary | null;
+  subject: string;
+  description: string;
+  status: TicketStatus;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface TicketComment {
+  id: string;
+  ticketId: string;
+  authorUserId: string;
+  authorUser: TicketAuthorSummary | null;
+  authorType: TicketCommentAuthorType;
+  body: string;
+  createdAt: string;
+}
+
+export interface CreateTicketInput {
+  applicationId: string;
+  subject: string;
+  description: string;
+}
+
 export interface AuditLogEntry {
   id?: string;
   actorType: string;

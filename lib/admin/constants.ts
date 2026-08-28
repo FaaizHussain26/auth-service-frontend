@@ -57,6 +57,13 @@ export const KEY_STATUS_BADGE: Record<string, { label: string; tone: "success" |
   retired: { label: "Retired", tone: "neutral" },
 };
 
+export const TICKET_STATUS_BADGE: Record<string, { label: string; tone: "success" | "warning" | "danger" | "neutral" }> = {
+  open: { label: "Open", tone: "warning" },
+  in_progress: { label: "In progress", tone: "neutral" },
+  resolved: { label: "Resolved", tone: "success" },
+  closed: { label: "Closed", tone: "neutral" },
+};
+
 export const AVATAR_PALETTE = [
   "#34c3b9",
   "#6366f1",

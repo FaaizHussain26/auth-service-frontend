@@ -32,6 +32,7 @@ const schema = z.object({
   webhookUrl: z.string().optional(),
   baseDomain: z.string().optional(),
   logoUrl: z.string().optional(),
+  rolesEndpointPath: z.string().optional(),
 });
 
 export type ApplicationFormValues = z.infer<typeof schema>;
@@ -71,6 +72,7 @@ export function ApplicationForm({
       webhookUrl: "",
       baseDomain: "",
       logoUrl: "",
+      rolesEndpointPath: "",
       ...defaultValues,
     },
   });
@@ -186,6 +188,14 @@ export function ApplicationForm({
             />
           </Field>
         </div>
+
+        <Field
+          label="Roles endpoint path"
+          htmlFor="rolesEndpointPath"
+          hint="Path (relative to the resource indicator) this app exposes to return its per-tenant roles, used by the invite-member role picker. Defaults to /internal/roles."
+        >
+          <Input id="rolesEndpointPath" placeholder="/internal/roles" {...register("rolesEndpointPath")} />
+        </Field>
 
         <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
           <Field label="Grant types" error={errors.grantTypes?.message}>

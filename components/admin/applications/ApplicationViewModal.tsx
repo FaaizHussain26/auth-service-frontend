@@ -80,6 +80,7 @@ export function ApplicationViewModal({ applicationId, onClose }: { applicationId
             <Detail label="Logo URL" value={app.logoUrl || "—"} />
             <Detail label="Resource indicator" value={app.resourceIndicator || "—"} />
             <Detail label="Webhook URL" value={app.webhookUrl || "—"} />
+            <Detail label="Roles endpoint path" value={app.rolesEndpointPath || "—"} />
           </dl>
 
           <ListDetail label="Grant types" values={app.grantTypes} />
