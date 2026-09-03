@@ -43,3 +43,6 @@ next-env.d.ts
 # claude
 .claude
 *.md
+e2e-results.json
+e2e/
+playwright.config.ts

@@ -295,3 +295,75 @@ export interface CurrentUser {
   email: string;
   isSuperadmin: true;
 }
+
+export type ReleaseNoteStatus = "draft" | "sending" | "sent";
+
+export interface ReleaseNoteApplicationSummary {
+  id: string;
+  name: string;
+}
+
+export interface ReleaseNote {
+  id: string;
+  applicationId: string;
+  application: ReleaseNoteApplicationSummary | null;
+  subject: string;
+  contentHtml: string;
+  status: ReleaseNoteStatus;
+  createdByUserId: string;
+  sentAt: string | null;
+  recipientCount: number;
+  deliveredCount: number;
+  failedCount: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface CreateReleaseNoteInput {
+  applicationId: string;
+  subject: string;
+  contentHtml: string;
+}
+
+export interface UpdateReleaseNoteInput {
+  applicationId?: string;
+  subject?: string;
+  contentHtml?: string;
+}
+
+export interface BrandingFields {
+  fromName: string;
+  fromAddress: string;
+  replyToAddress: string | null;
+  companyName: string;
+  primaryColor: string;
+  secondaryColor: string;
+  buttonLabel: string | null;
+  buttonUrl: string | null;
+  footerHtml: string;
+  logoUrl: string | null;
+}
+
+export interface ApplicationEmailSettings extends BrandingFields {
+  id: string | null;
+  applicationId: string;
+}
+
+export interface PlatformEmailSettings extends BrandingFields {
+  id: string | null;
+}
+
+export interface UpsertBrandingInput {
+  fromName: string;
+  fromAddress: string;
+  replyToAddress?: string;
+  companyName: string;
+  primaryColor: string;
+  secondaryColor: string;
+  buttonLabel?: string;
+  buttonUrl?: string;
+  footerHtml: string;
+}
+
+export type UpsertEmailSettingsInput = UpsertBrandingInput;
+export type UpsertPlatformEmailSettingsInput = UpsertBrandingInput;

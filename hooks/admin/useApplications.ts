@@ -2,7 +2,14 @@
 
 import { keepPreviousData, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useApiClient } from "@/hooks/shared/useApiClient";
+import type { ApiClient } from "@/lib/api-client";
 import type { Application, CreateApplicationInput, CreateApplicationResult, ListQuery } from "@/lib/admin/types";
+
+function uploadApplicationLogoRequest(api: ApiClient, id: string, file: File) {
+  const formData = new FormData();
+  formData.append("file", file);
+  return api.postForm<Application>(`/admin/v1/applications/${id}/logo`, formData);
+}
 
 export function useApplications(query: ListQuery) {
   const api = useApiClient();
@@ -70,5 +77,31 @@ export function useRotateApplicationSecret() {
   const api = useApiClient();
   return useMutation({
     mutationFn: (id: string) => api.post<{ clientSecret: string }>(`/admin/v1/applications/${id}/rotate-secret`),
+  });
+}
+
+export function useUploadApplicationLogo(id: string) {
+  const api = useApiClient();
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (file: File) => uploadApplicationLogoRequest(api, id, file),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["applications", id] });
+      queryClient.invalidateQueries({ queryKey: ["applications"] });
+      queryClient.invalidateQueries({ queryKey: ["email-branding", id] });
+    },
+  });
+}
+
+/** For uploading a logo right after creation, when the application id isn't known until the create mutation resolves. */
+export function useUploadApplicationLogoForId() {
+  const api = useApiClient();
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, file }: { id: string; file: File }) => uploadApplicationLogoRequest(api, id, file),
+    onSuccess: (_result, variables) => {
+      queryClient.invalidateQueries({ queryKey: ["applications", variables.id] });
+      queryClient.invalidateQueries({ queryKey: ["applications"] });
+    },
   });
 }

@@ -2,7 +2,7 @@
 
 import { Modal } from "@/components/ui/Modal";
 import { ApplicationForm } from "./ApplicationForm";
-import { useApplication, useCreateApplication, useUpdateApplication } from "@/hooks/admin/useApplications";
+import { useApplication, useCreateApplication, useUpdateApplication, useUploadApplicationLogoForId } from "@/hooks/admin/useApplications";
 import { useToast } from "@/components/ui/toast-context";
 import type { Application, CreateApplicationResult } from "@/lib/admin/types";
 
@@ -19,6 +19,7 @@ export function ApplicationModal({
 }) {
   const { notify } = useToast();
   const createApplication = useCreateApplication();
+  const uploadLogoForId = useUploadApplicationLogoForId();
   const freshApplication = useApplication(initialApplication?.id);
   const application = freshApplication.data?.data ?? initialApplication;
   const updateApplication = useUpdateApplication(application?.id ?? "");
@@ -37,6 +38,7 @@ export function ApplicationModal({
       <ApplicationForm
         key={application?.id ?? "new"}
         existingClientId={application?.clientId}
+        applicationId={application?.id}
         submitLabel={application ? "Save changes" : "Create application"}
         submitting={application ? updateApplication.isPending : createApplication.isPending}
         locked={application?.isSystem}
@@ -57,7 +59,7 @@ export function ApplicationModal({
               }
             : undefined
         }
-        onSubmit={(values) =>
+        onSubmit={(values, logoFile) =>
           application
             ? updateApplication.mutate(values, {
                 onSuccess: () => {
@@ -68,8 +70,24 @@ export function ApplicationModal({
               })
             : createApplication.mutate(values, {
                 onSuccess: (created) => {
-                  notify("success", `${created.data.application.name} was created.`);
-                  onCreated(created.data);
+                  const finish = () => {
+                    notify("success", `${created.data.application.name} was created.`);
+                    onCreated(created.data);
+                  };
+                  if (!logoFile) {
+                    finish();
+                    return;
+                  }
+                  uploadLogoForId.mutate(
+                    { id: created.data.application.id, file: logoFile },
+                    {
+                      onSuccess: finish,
+                      onError: (error: Error) => {
+                        notify("error", `Application created, but the logo failed to upload: ${error.message}`);
+                        finish();
+                      },
+                    },
+                  );
                 },
                 onError: (error: Error) => notify("error", error.message),
               })

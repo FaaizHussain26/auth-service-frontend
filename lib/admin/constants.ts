@@ -64,6 +64,12 @@ export const TICKET_STATUS_BADGE: Record<string, { label: string; tone: "success
   closed: { label: "Closed", tone: "neutral" },
 };
 
+export const RELEASE_NOTE_STATUS_BADGE: Record<string, { label: string; tone: "success" | "warning" | "danger" | "neutral" }> = {
+  draft: { label: "Draft", tone: "neutral" },
+  sending: { label: "Sending", tone: "warning" },
+  sent: { label: "Sent", tone: "success" },
+};
+
 export const AVATAR_PALETTE = [
   "#34c3b9",
   "#6366f1",

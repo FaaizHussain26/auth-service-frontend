@@ -58,3 +58,7 @@ body {
 * {
   box-sizing: border-box;
 }
+
+.ck-powered-by-balloon {
+  display: none !important;
+}

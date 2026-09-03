@@ -1,10 +1,11 @@
 import { cn } from "@/lib/utils";
 import { forwardRef, type InputHTMLAttributes, type ReactNode, type SelectHTMLAttributes, type TextareaHTMLAttributes } from "react";
 
-export function FieldLabel({ children, htmlFor }: { children: ReactNode; htmlFor?: string }) {
+export function FieldLabel({ children, htmlFor, required }: { children: ReactNode; htmlFor?: string; required?: boolean }) {
   return (
     <label htmlFor={htmlFor} className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-ink-700">
       {children}
+      {required ? <span className="ml-0.5 text-danger">*</span> : null}
     </label>
   );
 }
@@ -59,10 +60,26 @@ export const Select = forwardRef<HTMLSelectElement, SelectProps>(function Select
   );
 });
 
-export function Field({ label, htmlFor, error, hint, children }: { label: string; htmlFor?: string; error?: string; hint?: string; children: ReactNode }) {
+export function Field({
+  label,
+  htmlFor,
+  error,
+  hint,
+  required,
+  children,
+}: {
+  label: string;
+  htmlFor?: string;
+  error?: string;
+  hint?: string;
+  required?: boolean;
+  children: ReactNode;
+}) {
   return (
     <div>
-      <FieldLabel htmlFor={htmlFor}>{label}</FieldLabel>
+      <FieldLabel htmlFor={htmlFor} required={required}>
+        {label}
+      </FieldLabel>
       {children}
       <FieldError message={error} />
       {!error && hint ? <FieldHint>{hint}</FieldHint> : null}

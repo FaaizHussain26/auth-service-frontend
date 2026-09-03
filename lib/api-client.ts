@@ -26,7 +26,7 @@ async function request<T>(
   const headers = new Headers(init.headers);
   headers.set("Accept", "application/json");
   if (token) headers.set("Authorization", `Bearer ${token}`);
-  if (init.body && !headers.has("Content-Type")) {
+  if (init.body && !(init.body instanceof FormData) && !headers.has("Content-Type")) {
     headers.set("Content-Type", "application/json");
   }
 
@@ -55,6 +55,7 @@ export function createApiClient(getAccessToken: TokenProvider) {
       request<T>(getAccessToken, `${path}${toQuery(params)}`),
     post: <T>(path: string, body?: unknown) =>
       request<T>(getAccessToken, path, { method: "POST", body: body ? JSON.stringify(body) : undefined }),
+    postForm: <T>(path: string, formData: FormData) => request<T>(getAccessToken, path, { method: "POST", body: formData }),
     patch: <T>(path: string, body?: unknown) =>
       request<T>(getAccessToken, path, { method: "PATCH", body: body ? JSON.stringify(body) : undefined }),
     put: <T>(path: string, body?: unknown) =>
