@@ -53,6 +53,7 @@ export function ApplicationModal({
                 webhookUrl: application.webhookUrl ?? "",
                 baseDomain: application.baseDomain ?? "",
                 logoUrl: application.logoUrl ?? "",
+                rolesEndpointPath: application.rolesEndpointPath ?? "",
               }
             : undefined
         }

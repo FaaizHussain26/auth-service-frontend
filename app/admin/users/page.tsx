@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { Plus, Users as UsersIcon } from "lucide-react";
 import { useUsers, useDisableUser, useEnableUser } from "@/hooks/admin/useUsers";
+import { useMe } from "@/hooks/admin/useMe";
 import { useAllTenants } from "@/hooks/admin/useTenants";
 import { useAllApplications } from "@/hooks/admin/useApplications";
 import { useDebouncedValue } from "@/hooks/shared/useDebouncedValue";
@@ -37,6 +38,7 @@ export default function UsersPage() {
   const debouncedSearch = useDebouncedValue(search);
   const { notify } = useToast();
 
+  const me = useMe();
   const tenants = useAllTenants();
   const tenantOptions = (tenants.data?.data ?? []).map((tenant) => ({ value: tenant.id, label: tenant.name }));
   const applications = useAllApplications();
@@ -154,6 +156,7 @@ export default function UsersPage() {
       >
         <UserTable
           users={query.data?.data ?? []}
+          currentUserId={me.data?.id}
           onView={(selected) => setViewingUserId(selected.id)}
           onDisable={setPendingDisable}
           onEnable={setPendingEnable}

@@ -1,4 +1,4 @@
-import { Eye, Play, ShieldBan } from "lucide-react";
+import { Eye, Lock, Play, ShieldBan } from "lucide-react";
 import { Avatar } from "@/components/ui/Avatar";
 import { Badge } from "@/components/ui/Badge";
 import { Card } from "@/components/ui/Card";
@@ -8,11 +8,13 @@ import type { User } from "@/lib/admin/types";
 
 export function UserTable({
   users,
+  currentUserId,
   onView,
   onDisable,
   onEnable,
 }: {
   users: User[];
+  currentUserId?: string;
   onView: (user: User) => void;
   onDisable: (user: User) => void;
   onEnable: (user: User) => void;
@@ -74,7 +76,15 @@ export function UserTable({
                       <Eye className="h-3.5 w-3.5" />
                       View
                     </button>
-                    {user.status === "active" ? (
+                    {user.id === currentUserId ? (
+                      <span
+                        title="You can't disable your own account."
+                        className="flex items-center gap-1.5 rounded-field px-2.5 py-1.5 text-xs font-semibold text-ink-400"
+                      >
+                        <Lock className="h-3.5 w-3.5" />
+                        You
+                      </span>
+                    ) : user.status === "active" ? (
                       <button
                         onClick={() => onDisable(user)}
                         className="flex items-center gap-1.5 rounded-field px-2.5 py-1.5 text-xs font-semibold text-danger hover:bg-danger-bg"

@@ -32,6 +32,7 @@ export interface Application {
   webhookUrl: string | null;
   baseDomain: string | null;
   logoUrl: string | null;
+  rolesEndpointPath: string;
   hiddenFromPicker: boolean;
   autoGrant: boolean;
   isSystem: boolean;
@@ -52,6 +53,7 @@ export interface CreateApplicationInput {
   webhookSecret?: string;
   baseDomain?: string;
   logoUrl?: string;
+  rolesEndpointPath?: string;
 }
 
 export interface CreateApplicationResult {
@@ -240,6 +242,52 @@ export interface AuditLogEntry {
   targetId: string | null;
   data: Record<string, unknown> | null;
   occurredAt: string;
+}
+
+export type TicketStatus = "open" | "in_progress" | "resolved" | "closed";
+export type TicketCommentAuthorType = "tenant_user" | "admin";
+
+export interface TicketAuthorSummary {
+  id: string;
+  email: string;
+  firstName: string | null;
+  lastName: string | null;
+}
+
+export interface TicketTenantSummary {
+  id: string;
+  name: string;
+  slug: string;
+}
+
+export interface TicketApplicationSummary {
+  id: string;
+  name: string;
+}
+
+export interface Ticket {
+  id: string;
+  tenantId: string;
+  tenant: TicketTenantSummary | null;
+  createdByUserId: string;
+  createdByUser: TicketAuthorSummary | null;
+  applicationId: string;
+  application: TicketApplicationSummary | null;
+  subject: string;
+  description: string;
+  status: TicketStatus;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface TicketComment {
+  id: string;
+  ticketId: string;
+  authorUserId: string;
+  authorUser: TicketAuthorSummary | null;
+  authorType: TicketCommentAuthorType;
+  body: string;
+  createdAt: string;
 }
 
 export interface CurrentUser {
