@@ -182,7 +182,12 @@ export default function UsersPage() {
         }}
       />
 
-      <UserDetailModal key={viewingUserId ?? "none"} userId={viewingUserId} onClose={() => setViewingUserId(null)} />
+      <UserDetailModal
+        key={viewingUserId ?? "none"}
+        userId={viewingUserId}
+        currentUserId={me.data?.id}
+        onClose={() => setViewingUserId(null)}
+      />
 
       <SecretModal
         open={Boolean(temporaryPassword)}

@@ -39,6 +39,8 @@ export interface Application {
   status: ApplicationStatus;
   createdAt: string;
   updatedAt: string;
+  /** Only present on list responses — whether this application has custom email branding saved. */
+  hasEmailBranding?: boolean;
 }
 
 export interface CreateApplicationInput {
@@ -230,16 +232,25 @@ export interface SessionRecord {
   updatedAt: string;
   revokedAt: string | null;
   revokedReason: string | null;
+  isCurrent: boolean;
 }
 
 export interface AuditLogEntry {
   id?: string;
   actorType: string;
   actorId: string | null;
+  actorEmail: string | null;
+  actorName: string | null;
   tenantId: string | null;
   event: string;
   targetType: string | null;
   targetId: string | null;
+  targetEmail: string | null;
+  targetName: string | null;
+  ip: string | null;
+  userAgent: string | null;
+  method: string | null;
+  path: string | null;
   data: Record<string, unknown> | null;
   occurredAt: string;
 }

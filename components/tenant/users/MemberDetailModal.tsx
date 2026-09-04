@@ -99,6 +99,8 @@ export function MemberDetailModal({ userId, onClose }: { userId: string | null; 
                     </div>
                     {session.revokedAt ? (
                       <Badge label="Revoked" tone="neutral" />
+                    ) : session.isCurrent ? (
+                      <Badge label="Active" tone="success" />
                     ) : (
                       <button
                         onClick={() =>

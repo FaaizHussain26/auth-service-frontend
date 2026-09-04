@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { ScrollText } from "lucide-react";
+import { ChevronDown, ChevronRight, ScrollText } from "lucide-react";
 import { useAuditLog } from "@/hooks/admin/useAudit";
 import { useAllTenants } from "@/hooks/admin/useTenants";
 import { useAllApplications } from "@/hooks/admin/useApplications";
@@ -12,6 +12,7 @@ import { FilterField, FilterToolbar } from "@/components/ui/FilterToolbar";
 import { QueryState } from "@/components/ui/QueryState";
 import { Card } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
+import { AuditEntryDetail, auditIdentitySummary } from "@/components/ui/AuditEntryDetail";
 import { formatDateTime, fullName } from "@/lib/utils";
 import type { AuditLogEntry } from "@/lib/admin/types";
 
@@ -25,6 +26,7 @@ export default function AuditPage() {
   const [filtersOpen, setFiltersOpen] = useState(false);
   const [cursor, setCursor] = useState<string | undefined>(undefined);
   const [entries, setEntries] = useState<AuditLogEntry[]>([]);
+  const [expandedId, setExpandedId] = useState<string | number | null>(null);
 
   const tenants = useAllTenants();
   const tenantOptions = (tenants.data?.data ?? []).map((tenant) => ({ value: tenant.id, label: tenant.name }));
@@ -118,18 +120,36 @@ export default function AuditPage() {
         emptyDescription="Administrative actions will appear here as they happen."
       >
         <Card className="divide-y divide-surface-border">
-          {allEntries.map((entry, index) => (
-            <div key={entry.id ?? index} className="flex flex-wrap items-center justify-between gap-2 p-4 text-sm">
-              <div className="min-w-0">
-                <p className="truncate font-medium text-ink-900">{entry.event}</p>
-                <p className="truncate text-xs text-ink-500">
-                  {entry.actorType}
-                  {entry.targetType ? ` → ${entry.targetType}` : ""}
-                </p>
+          {allEntries.map((entry, index) => {
+            const rowId = entry.id ?? index;
+            const isExpanded = expandedId === rowId;
+            return (
+              <div key={rowId}>
+                <button
+                  type="button"
+                  onClick={() => setExpandedId(isExpanded ? null : rowId)}
+                  className="flex w-full flex-wrap items-center justify-between gap-2 p-4 text-left text-sm hover:bg-surface-page"
+                >
+                  <div className="flex min-w-0 items-center gap-2">
+                    {isExpanded ? (
+                      <ChevronDown className="h-3.5 w-3.5 shrink-0 text-ink-500" />
+                    ) : (
+                      <ChevronRight className="h-3.5 w-3.5 shrink-0 text-ink-500" />
+                    )}
+                    <div className="min-w-0">
+                      <p className="truncate font-medium text-ink-900">{entry.event}</p>
+                      <p className="truncate text-xs text-ink-500">
+                        {auditIdentitySummary(entry.actorEmail, entry.actorName, entry.actorType)}
+                        {entry.targetType ? ` → ${auditIdentitySummary(entry.targetEmail, entry.targetName, entry.targetType)}` : ""}
+                      </p>
+                    </div>
+                  </div>
+                  <span className="shrink-0 text-xs text-ink-500">{formatDateTime(entry.occurredAt)}</span>
+                </button>
+                {isExpanded ? <AuditEntryDetail entry={entry} showTenant /> : null}
               </div>
-              <span className="shrink-0 text-xs text-ink-500">{formatDateTime(entry.occurredAt)}</span>
-            </div>
-          ))}
+            );
+          })}
         </Card>
       </QueryState>
 

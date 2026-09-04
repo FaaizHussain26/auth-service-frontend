@@ -1,12 +1,12 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { KeyRound, UserRound } from "lucide-react";
+import { KeyRound, Monitor, ShieldCheck, UserRound } from "lucide-react";
 import { useMe } from "@/hooks/tenant/useMe";
-import { useChangePassword, useUpdateProfile } from "@/hooks/tenant/useAccount";
+import { useChangePassword, useMySessions, useRevokeMySession, useUpdateProfile } from "@/hooks/tenant/useAccount";
 import { useToast } from "@/components/ui/toast-context";
 import { Card } from "@/components/ui/Card";
 import { Field, Input } from "@/components/ui/Field";
@@ -14,7 +14,8 @@ import { Button } from "@/components/ui/Button";
 import { Spinner } from "@/components/ui/Spinner";
 import { Avatar } from "@/components/ui/Avatar";
 import { Badge } from "@/components/ui/Badge";
-import { fullName } from "@/lib/utils";
+import { Pagination } from "@/components/ui/Pagination";
+import { formatDateTime, fullName } from "@/lib/utils";
 
 const profileSchema = z.object({
   firstName: z.string().optional(),
@@ -41,6 +42,9 @@ export default function AccountPage() {
   const me = useMe();
   const updateProfile = useUpdateProfile();
   const changePassword = useChangePassword();
+  const [sessionsPage, setSessionsPage] = useState(1);
+  const sessions = useMySessions({ limit: 10, page: sessionsPage, sortBy: "createdAt", sortOrder: "DESC" });
+  const revokeSession = useRevokeMySession();
 
   const {
     register: registerProfile,
@@ -182,6 +186,57 @@ export default function AccountPage() {
           </form>
         </Card>
       </div>
+
+      <Card className="space-y-5 p-6">
+        <div className="flex items-center gap-2.5">
+          <div className="flex h-9 w-9 items-center justify-center rounded-full bg-brand-100 text-brand-700">
+            <ShieldCheck className="h-4.5 w-4.5" />
+          </div>
+          <div>
+            <h2 className="text-sm font-semibold text-ink-900">Active sessions</h2>
+            <p className="text-xs text-ink-500">Devices and browsers currently signed in to your account.</p>
+          </div>
+        </div>
+
+        {sessions.isLoading ? <Spinner /> : null}
+        {!sessions.isLoading && !(sessions.data?.data ?? []).length ? (
+          <p className="py-4 text-center text-sm text-ink-500">No sessions recorded.</p>
+        ) : null}
+        {!sessions.isLoading && (sessions.data?.data ?? []).length ? (
+          <ul className="divide-y divide-surface-border">
+            {(sessions.data?.data ?? []).map((session) => (
+              <li key={session.id} className="flex flex-wrap items-center justify-between gap-2 py-3 text-sm">
+                <div className="flex items-center gap-2.5">
+                  <Monitor className="h-4 w-4 text-ink-500" />
+                  <div>
+                    <p className="font-medium text-ink-900">Expires {formatDateTime(session.expiresAt)}</p>
+                    <p className="text-xs text-ink-500">Created {formatDateTime(session.createdAt)}</p>
+                  </div>
+                </div>
+                {session.revokedAt ? (
+                  <Badge label="Revoked" tone="neutral" />
+                ) : session.isCurrent ? (
+                  <Badge label="Active" tone="success" />
+                ) : (
+                  <button
+                    onClick={() =>
+                      revokeSession.mutate(session.id, {
+                        onSuccess: () => notify("success", "Session revoked."),
+                        onError: (error: Error) => notify("error", error.message),
+                      })
+                    }
+                    className="text-xs font-semibold text-danger hover:underline"
+                  >
+                    Revoke
+                  </button>
+                )}
+              </li>
+            ))}
+          </ul>
+        ) : null}
+
+        <Pagination meta={sessions.data?.meta} onPageChange={setSessionsPage} />
+      </Card>
     </div>
   );
 }

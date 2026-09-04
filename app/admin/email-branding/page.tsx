@@ -5,6 +5,7 @@ import { Controller, useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { Combobox } from "@/components/ui/Combobox";
+import { Badge } from "@/components/ui/Badge";
 import { Field, Input } from "@/components/ui/Field";
 import { ColorField } from "@/components/ui/ColorField";
 import { RichTextEditor } from "@/components/ui/RichTextEditor";
@@ -42,16 +43,26 @@ export default function EmailBrandingPage() {
   const applicationId = !isPlatform ? target || undefined : undefined;
 
   const applications = useAllApplications();
+  const platformSettings = usePlatformEmailBranding(true);
   const applicationOptions = [
-    { value: PLATFORM_VALUE, label: "myaccount (Platform)" },
-    ...(applications.data?.data ?? []).filter((app) => !app.isSystem).map((app) => ({ value: app.id, label: app.name })),
+    {
+      value: PLATFORM_VALUE,
+      label: "myaccount (Platform)",
+      indicator: platformSettings.data?.data.id ? <Badge label="Configured" tone="success" /> : null,
+    },
+    ...(applications.data?.data ?? [])
+      .filter((app) => !app.isSystem)
+      .map((app) => ({
+        value: app.id,
+        label: app.name,
+        indicator: app.hasEmailBranding ? <Badge label="Configured" tone="success" /> : null,
+      })),
   ];
 
   const appSettings = useEmailBranding(applicationId);
   const saveAppBranding = useSaveEmailBranding(applicationId ?? "");
   const uploadAppLogo = useUploadApplicationLogo(applicationId ?? "");
 
-  const platformSettings = usePlatformEmailBranding(isPlatform);
   const savePlatformBranding = useSavePlatformEmailBranding();
   const uploadPlatformLogo = useUploadPlatformLogo();
 

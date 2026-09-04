@@ -90,6 +90,7 @@ export interface SessionRecord {
   expiresAt: string;
   createdAt: string;
   revokedAt: string | null;
+  isCurrent: boolean;
 }
 
 export interface InviteApplicationRoleValue {
@@ -161,10 +162,18 @@ export interface AuditLogEntry {
   id?: string;
   actorType: string;
   actorId: string | null;
+  actorEmail: string | null;
+  actorName: string | null;
   tenantId: string | null;
   event: string;
   targetType: string | null;
   targetId: string | null;
+  targetEmail: string | null;
+  targetName: string | null;
+  ip: string | null;
+  userAgent: string | null;
+  method: string | null;
+  path: string | null;
   data: Record<string, unknown> | null;
   occurredAt: string;
 }

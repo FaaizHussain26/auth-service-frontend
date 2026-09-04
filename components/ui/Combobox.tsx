@@ -1,5 +1,6 @@
 "use client";
 
+import type { ReactNode } from "react";
 import * as SelectPrimitive from "@radix-ui/react-select";
 import { Check, ChevronDown } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -7,6 +8,8 @@ import { cn } from "@/lib/utils";
 interface ComboboxOption {
   value: string;
   label: string;
+  /** Optional trailing badge/marker rendered next to the label in the open list. */
+  indicator?: ReactNode;
 }
 
 const CLEAR_VALUE = "__combobox_clear__";
@@ -60,7 +63,10 @@ export function Combobox({
                 value={option.value}
                 className="flex cursor-pointer select-none items-center justify-between gap-2 rounded-lg px-3 py-2.5 text-sm text-ink-900 outline-none data-[highlighted]:bg-surface-page data-[state=checked]:font-semibold"
               >
-                <SelectPrimitive.ItemText>{option.label}</SelectPrimitive.ItemText>
+                <span className="flex min-w-0 items-center gap-2">
+                  <SelectPrimitive.ItemText>{option.label}</SelectPrimitive.ItemText>
+                  {option.indicator}
+                </span>
                 <SelectPrimitive.ItemIndicator>
                   <Check className="h-4 w-4 text-brand-600" />
                 </SelectPrimitive.ItemIndicator>

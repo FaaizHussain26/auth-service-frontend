@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Building2, KeyRound, Monitor, Play, ShieldBan } from "lucide-react";
+import { Building2, KeyRound, Lock, Monitor, Play, ShieldBan } from "lucide-react";
 import { Modal } from "@/components/ui/Modal";
 import { Spinner } from "@/components/ui/Spinner";
 import { ErrorState } from "@/components/ui/ErrorState";
@@ -14,9 +14,18 @@ import { useToast } from "@/components/ui/toast-context";
 import { USER_STATUS_BADGE } from "@/lib/admin/constants";
 import { formatDateTime, fullName } from "@/lib/utils";
 
-export function UserDetailModal({ userId, onClose }: { userId: string | null; onClose: () => void }) {
+export function UserDetailModal({
+  userId,
+  currentUserId,
+  onClose,
+}: {
+  userId: string | null;
+  currentUserId?: string;
+  onClose: () => void;
+}) {
   const { notify } = useToast();
   const user = useUser(userId ?? undefined);
+  const isSelf = Boolean(currentUserId && user.data?.data.id === currentUserId);
   const [sessionsPage, setSessionsPage] = useState(1);
   const sessions = useUserSessions(userId ?? undefined, { limit: 10, page: sessionsPage, sortBy: "createdAt", sortOrder: "DESC" });
   const disable = useDisableUser();
@@ -88,30 +97,42 @@ export function UserDetailModal({ userId, onClose }: { userId: string | null; on
           </div>
 
           <div className="flex gap-2 border-t border-surface-border pt-5">
-            {user.data.data.status === "active" ? (
-              <Button variant="danger" onClick={() => setConfirmDisable(true)}>
-                <ShieldBan className="h-4 w-4" />
-                Disable user
-              </Button>
+            {isSelf ? (
+              <span
+                title="You can't disable or force-reset your own account from here."
+                className="flex items-center gap-1.5 rounded-field px-2.5 py-1.5 text-xs font-semibold text-ink-400"
+              >
+                <Lock className="h-3.5 w-3.5" />
+                This is your account
+              </span>
             ) : (
-              <Button onClick={() => setConfirmEnable(true)}>
-                <Play className="h-4 w-4" />
-                Enable user
-              </Button>
+              <>
+                {user.data.data.status === "active" ? (
+                  <Button variant="danger" onClick={() => setConfirmDisable(true)}>
+                    <ShieldBan className="h-4 w-4" />
+                    Disable user
+                  </Button>
+                ) : (
+                  <Button onClick={() => setConfirmEnable(true)}>
+                    <Play className="h-4 w-4" />
+                    Enable user
+                  </Button>
+                )}
+                <Button
+                  variant="secondary"
+                  loading={forceReset.isPending}
+                  onClick={() =>
+                    forceReset.mutate(userId as string, {
+                      onSuccess: () => notify("success", "Password reset forced. The user must set a new password to sign in again."),
+                      onError: (error: Error) => notify("error", error.message),
+                    })
+                  }
+                >
+                  <KeyRound className="h-4 w-4" />
+                  Force password reset
+                </Button>
+              </>
             )}
-            <Button
-              variant="secondary"
-              loading={forceReset.isPending}
-              onClick={() =>
-                forceReset.mutate(userId as string, {
-                  onSuccess: () => notify("success", "Password reset forced. The user must set a new password to sign in again."),
-                  onError: (error: Error) => notify("error", error.message),
-                })
-              }
-            >
-              <KeyRound className="h-4 w-4" />
-              Force password reset
-            </Button>
           </div>
 
           <div className="border-t border-surface-border pt-5">
@@ -133,6 +154,8 @@ export function UserDetailModal({ userId, onClose }: { userId: string | null; on
                     </div>
                     {session.revokedAt ? (
                       <Badge label="Revoked" tone="neutral" />
+                    ) : session.isCurrent ? (
+                      <Badge label="Active" tone="success" />
                     ) : (
                       <button
                         onClick={() =>
